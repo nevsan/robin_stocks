@@ -1,10 +1,13 @@
 """Contains functions for getting information related to the user account."""
+import logging
 import os
 
 import robin_stocks.helper as helper
 import robin_stocks.profiles as profiles
 import robin_stocks.stocks as stocks
 import robin_stocks.urls as urls
+
+logger = logging.getLogger(__name__)
 
 
 @helper.login_required
@@ -207,8 +210,8 @@ def get_margin_calls(symbol=None):
     if symbol:
         try:
             symbol = symbol.upper().strip()
-        except AttributeError as message:
-            print(message)
+        except AttributeError:
+            logger.exception('')
             return None
         payload = {'equity_instrument_id', helper.id_for_stock(symbol)}
         data = helper.request_get(url, 'results', payload)
@@ -386,7 +389,7 @@ def download_document(url, name=None, dirpath=None):
     """
     data = helper.request_document(url)
 
-    print('Writing PDF...')
+    logger.info('Writing PDF...')
     if not name:
         name = url[36:].split('/', 1)[0]
 
@@ -399,7 +402,7 @@ def download_document(url, name=None, dirpath=None):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     open(filename, 'wb').write(data.content)
-    print('Done - Wrote file {}.pdf to {}'.format(name, os.path.abspath(filename)))
+    logger.info('Done - Wrote file {}.pdf to {}'.format(name, os.path.abspath(filename)))
 
     return(data)
 
@@ -437,7 +440,7 @@ def download_all_documents(doctype=None, dirpath=None):
                 open(filename, 'wb').write(data.content)
                 downloaded_files = True
                 counter += 1
-                print('Writing PDF {}...'.format(counter))
+                logger.info('Writing PDF {}...'.format(counter))
         else:
             if item['type'] == doctype:
                 data = helper.request_document(item['download_url'])
@@ -449,16 +452,16 @@ def download_all_documents(doctype=None, dirpath=None):
                     open(filename, 'wb').write(data.content)
                     downloaded_files = True
                     counter += 1
-                    print('Writing PDF {}...'.format(counter))
+                    logger.info('Writing PDF {}...'.format(counter))
 
     if downloaded_files == False:
-        print('WARNING: Could not find files of that doctype to download')
+        logger.warning('Could not find files of that doctype to download')
     else:
         if counter == 1:
-            print('Done - wrote {} file to {}'.format(counter,
+            logger.info('Done - wrote {} file to {}'.format(counter,
                                                       os.path.abspath(directory)))
         else:
-            print('Done - wrote {} files to {}'.format(counter,
+            logger.info('Done - wrote {} files to {}'.format(counter,
                                                        os.path.abspath(directory)))
 
     return(documents)

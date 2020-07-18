@@ -8,10 +8,12 @@ Functions
     - update_session
 """
 from functools import wraps
+import logging
 
 import requests
 from robin_stocks.globals import LOGGED_IN, SESSION
 
+logger = logging.getLogger(__name__)
 
 def set_login_state(logged_in):
     """Sets the login state"""
@@ -54,8 +56,8 @@ def id_for_stock(symbol):
     """
     try:
         symbol = symbol.upper().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return(None)
 
     url = 'https://api.robinhood.com/instruments/'
@@ -75,8 +77,8 @@ def id_for_chain(symbol):
     """
     try:
         symbol = symbol.upper().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return(None)
 
     url = 'https://api.robinhood.com/instruments/'
@@ -100,8 +102,8 @@ def id_for_group(symbol):
     """
     try:
         symbol = symbol.upper().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return(None)
 
     url = 'https://api.robinhood.com/options/chains/{0}/'.format(
@@ -138,7 +140,7 @@ def id_for_option(symbol, expirationDate, strike, optionType):
 
     listOfOptions = [item for item in data if item["expiration_date"] == expirationDate]
     if (len(listOfOptions) == 0):
-        print('Getting the option ID failed. Perhaps the expiration date is wrong format, or the strike price is wrong.')
+        logger.info('Getting the option ID failed. Perhaps the expiration date is wrong format, or the strike price is wrong.')
         return(None)
 
     return(listOfOptions[0]['id'])
@@ -240,7 +242,7 @@ def request_document(url, payload=None):
         res = SESSION.get(url, params=payload)
         res.raise_for_status()
     except requests.exceptions.HTTPError as message:
-        print(message)
+        logger.exception('')
         return(None)
 
     return(res)
@@ -274,7 +276,7 @@ def request_get(url, dataType='regular', payload=None, jsonify_data=True):
             res.raise_for_status()
             data = res.json()
         except (requests.exceptions.HTTPError, AttributeError) as message:
-            print(message)
+            logger.exception('')
             return(data)
     else:
         res = SESSION.get(url, params=payload)
@@ -284,7 +286,7 @@ def request_get(url, dataType='regular', payload=None, jsonify_data=True):
         try:
             data = data['results']
         except KeyError as message:
-            print("{0} is not a key in the dictionary".format(message))
+            logger.exception("{0} is not a key in the dictionary".format(message))
             return([None])
     elif (dataType == 'pagination'):
         counter = 2
@@ -292,11 +294,11 @@ def request_get(url, dataType='regular', payload=None, jsonify_data=True):
         try:
             data = data['results']
         except KeyError as message:
-            print("{0} is not a key in the dictionary".format(message))
+            logging.exception("{0} is not a key in the dictionary".format(message))
             return([None])
 
         if nextData['next']:
-            print('Found Additional pages.')
+            logger.info('Found Additional pages.')
         while nextData['next']:
             try:
                 res = SESSION.get(nextData['next'])
@@ -305,7 +307,7 @@ def request_get(url, dataType='regular', payload=None, jsonify_data=True):
             except:
                 print('Additional pages exist but could not be loaded.')
                 return(data)
-            print('Loading page '+str(counter)+' ...')
+            logger.info('Loading page '+str(counter)+' ...')
             counter += 1
             for item in nextData['results']:
                 data.append(item)
@@ -313,7 +315,7 @@ def request_get(url, dataType='regular', payload=None, jsonify_data=True):
         try:
             data = data['results'][0]
         except KeyError as message:
-            print("{0} is not a key in the dictionary".format(message))
+            logging.exception("{0} is not a key in the dictionary".format(message))
             return(None)
         except IndexError as message:
             return(None)
@@ -348,8 +350,8 @@ def request_post(url, payload=None, timeout=16, json=False, jsonify_data=True):
         else:
             res = SESSION.post(url, data=payload, timeout=timeout)
         data = res.json()
-    except Exception as message:
-        print("Error in request_post: {0}".format(message))
+    except Exception:
+        logging.exception("Error in request_post")
     # Either return response <200,401,etc.> or the data that is returned from requests.
     if jsonify_data:
         return(data)
@@ -369,9 +371,9 @@ def request_delete(url):
         res = SESSION.delete(url)
         res.raise_for_status()
         data = res
-    except Exception as message:
+    except Exception:
         data = None
-        print("Error in request_delete: {0}".format(message))
+        logging.exception("Error in request_delete.")
         
     return(data)
 

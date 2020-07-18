@@ -1,11 +1,14 @@
 """Contains all functions for the purpose of logging in and out to Robinhood."""
 import getpass
+import logging
 import os
 import pickle
 import random
 
 import robin_stocks.helper as helper
 import robin_stocks.urls as urls
+
+logger = logging.getLogger(__name__)
 
 
 def generate_device_token():
@@ -127,8 +130,8 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
                             'expires_in': expiresIn, 'scope': scope, 'detail': 'logged in using authentication in {0}'.format(creds_file),
                             'backup_code': None, 'refresh_token': refresh_token})
             except:
-                print(
-                    "ERROR: There was an issue loading pickle file. Authentication may be expired - logging in normally.")
+                logger.error(
+                    "There was an issue loading pickle file. Authentication may be expired - logging in normally.")
                 helper.set_login_state(False)
                 helper.update_session('Authorization', None)
         else:

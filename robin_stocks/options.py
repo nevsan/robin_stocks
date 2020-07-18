@@ -1,7 +1,12 @@
 """Contains functions for getting information about options."""
+import logging
+import sys
+
 import robin_stocks.helper as helper
 import robin_stocks.urls as urls
-import sys
+
+logger = logging.getLogger(__name__)
+
 
 def spinning_cursor():
     """ This is a generator function to yield a character. """
@@ -95,8 +100,8 @@ def get_chains(symbol, info=None):
     """
     try:
         symbol = symbol.upper().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return None
 
     url = urls.chains(symbol)
@@ -124,13 +129,13 @@ def find_tradable_options(symbol, expirationDate=None, strikePrice=None, optionT
     """
     try:
         symbol = symbol.upper().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     url = urls.option_instruments()
     if not helper.id_for_chain(symbol):
-        print("Symbol {} is not valid for finding options.".format(symbol))
+        logger.warning("Symbol {} is not valid for finding options.".format(symbol))
         return [None]
 
     payload = {'chain_id': helper.id_for_chain(symbol),
@@ -167,8 +172,8 @@ def find_options_by_expiration(inputSymbols, expirationDate, optionType=None, in
         symbols = helper.inputs_to_set(inputSymbols)
         if optionType:
             optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     data = []
@@ -205,8 +210,8 @@ def find_options_by_strike(inputSymbols, strikePrice, optionType=None, info=None
         symbols = helper.inputs_to_set(inputSymbols)
         if optionType:
             optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     data = []
@@ -244,8 +249,8 @@ def find_options_by_expiration_and_strike(inputSymbols, expirationDate, strikePr
         symbols = helper.inputs_to_set(inputSymbols)
         if optionType:
             optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     data = []
@@ -290,7 +295,7 @@ def find_options_by_specific_profitability(inputSymbols, expirationDate=None, st
     data = []
 
     if (typeProfit != "chance_of_profit_short" and typeProfit != "chance_of_profit_long"):
-        print("Invalid string for 'typeProfit'. Defaulting to 'chance_of_profit_short'.")
+        logger.warning("Invalid string for 'typeProfit'. Defaulting to 'chance_of_profit_short'.")
         typeProfit = "chance_of_profit_short"
 
     for symbol in symbols:
@@ -385,8 +390,8 @@ def get_option_market_data(inputSymbols, expirationDate, strikePrice, optionType
         symbols = helper.inputs_to_set(inputSymbols)
         if optionType:
             optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     data = []
@@ -434,8 +439,8 @@ def get_option_instrument_data(symbol, expirationDate, strikePrice, optionType, 
     try:
         symbol = symbol.upper().strip()
         optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     optionID = helper.id_for_option(symbol, expirationDate, strikePrice, optionType)
@@ -472,22 +477,22 @@ def get_option_historicals(symbol, expirationDate, strikePrice, optionType, inte
     try:
         symbol = symbol.upper().strip()
         optionType = optionType.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return [None]
 
     interval_check = ['5minute', '10minute', 'hour', 'day', 'week']
     span_check = ['day', 'week', 'year', '5year']
     bounds_check = ['extended', 'regular', 'trading']
     if interval not in interval_check:
-        print(
-            'ERROR: Interval must be "5minute","10minute","hour","day",or "week"')
+        logger.error(
+            'Interval must be "5minute","10minute","hour","day",or "week"')
         return([None])
     if span not in span_check:
-        print('ERROR: Span must be "day", "week", "year", or "5year"')
+        logger.error('Span must be "day", "week", "year", or "5year"')
         return([None])
     if bounds not in bounds_check:
-        print('ERROR: Bounds must be "extended","regular",or "trading"')
+        logger.error('Bounds must be "extended","regular",or "trading"')
         return([None])
 
     optionID = helper.id_for_option(symbol, expirationDate, strikePrice, optionType)

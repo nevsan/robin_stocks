@@ -1,6 +1,10 @@
 """Contains functions for getting market level data."""
+import logging
+
 import robin_stocks.helper as helper
 import robin_stocks.urls as urls
+
+logger = logging.getLogger(__name__)
 
 
 def get_top_movers(direction, info=None):
@@ -16,8 +20,8 @@ def get_top_movers(direction, info=None):
     """
     try:
         direction = direction.lower().strip()
-    except AttributeError as message:
-        print(message)
+    except AttributeError:
+        logger.exception('')
         return None
 
     if (direction != 'up' and direction != 'down'):

@@ -1,7 +1,10 @@
 """Contains functions to get information about crypto-currencies."""
+import logging
+
 import robin_stocks.helper as helper
 import robin_stocks.urls as urls
 
+logger = logging.getLogger(__name__)
 
 @helper.login_required
 def load_crypto_profile(info=None):
@@ -199,17 +202,17 @@ def get_crypto_historicals(symbol, interval='hour', span='week', bounds='24_7', 
     bounds_check = ['24_7', 'extended', 'regular', 'trading']
 
     if interval not in interval_check:
-        print(
-            'ERROR: Interval must be "15second","5minute","10minute","hour","day",or "week"')
+        logger.error(
+            'Interval must be "15second","5minute","10minute","hour","day",or "week"')
         return([None])
     if span not in span_check:
-        print('ERROR: Span must be "hour","day","week","month","3month","year",or "5year"')
+        logger.error('Span must be "hour","day","week","month","3month","year",or "5year"')
         return([None])
     if bounds not in bounds_check:
-        print('ERROR: Bounds must be "24_7","extended","regular",or "trading"')
+        logger.error('Bounds must be "24_7","extended","regular",or "trading"')
         return([None])
     if (bounds == 'extended' or bounds == 'trading') and span != 'day':
-        print('ERROR: extended and trading bounds can only be used with a span of "day"')
+        logger.error('extended and trading bounds can only be used with a span of "day"')
         return([None])
 
 
